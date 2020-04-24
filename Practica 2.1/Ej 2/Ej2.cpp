@@ -86,7 +86,7 @@ int main(int argc, char **argv){
             time(&rawtime);
             timeinfo = localtime (&rawtime);
             strftime(message,80, "%F",timeinfo);
-            sendto(sd, message, strlen(message), 0, (struct sockaddr *)&client_addr, client_len);;
+            sendto(sd, message, strlen(message), 0, (struct sockaddr *)&client_addr, client_len);
             break;
             default:
             memset(message,0,80);
