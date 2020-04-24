@@ -1,2 +1,5 @@
 Gonzalo Cidoncha Pérez
 Guillermo Sánchez de Lamadrid Martínez
+
+Ambos ejercicios han sido realizados por llamada de discord (compartiendo pantalla), en una dinámica idéntica a la que tendríamos en un día de lab normal, por lo que 
+todos los ejercicios fueron realizados por ambos miembros independientemente de quien lo subiera al repositorio.
