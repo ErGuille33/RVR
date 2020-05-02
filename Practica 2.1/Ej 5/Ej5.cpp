@@ -15,25 +15,20 @@
 
 int main(int argc, char **argv){
     struct addrinfo hints;
-    struct addrinfo *res;
+    struct addrinfo res;
 
     char host[NI_MAXHOST];
     char service[NI_MAXSERV];
-
-
-    struct sockaddr_in server_addr;
-    socklen_t server_len = sizeof(struct sockaddr_in);
 
     memset(&hints, 0, sizeof(struct addrinfo));
 
     hints.ai_family = AF_UNSPEC;
 
-    hints.ai_protocol = 0;
-
-    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_protocol = 6;
 
 
     int rc = getaddrinfo(argv[1], argv[2], &hints, &res);
+
 
     if(rc != 0)
     {
@@ -41,16 +36,15 @@ int main(int argc, char **argv){
         return -1;
     }
 
-    int sd = socket(res->ai_family, res->ai_socktype,res->ai_protocol);
-
-    server_addr.sin_family = AF_UNSPEC;
-
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(atoi(argv[2]));
+   int sd = socket(res->ai_family, res->ai_socktype,res->ai_protocol);
 
     int connected = 3;
-    connected = connect(sd, (struct sockaddr )&server_addr, server_len);
-    std::cout << connected << std::endl;
+    connected = connect(sd,  res->ai_addr, res->ai_addrlen);
+
+    if(connected != 0)
+    {
+        std::cerr << strerror(connected) << std::endl;
+    }
 
     char buffer[80];
     ssize_t bytes = 0 ;
@@ -60,16 +54,16 @@ int main(int argc, char **argv){
     while(c == 1){
 
         std::cin >> buffer;
-
+ 
         if (buffer[0] == 'q' && buffer[1] == '\0'){
             c = 0;
         }
 
         else{
-
-            sendto(sd, buffer, strlen(buffer), 0, (struct sockaddr )&server_addr, server_len);
-            bytes = recv(sd, (void*) buffer, sizeof(char)*79,0);
-            buffer[bytes]= '\0';
+        sendto(sd, buffer, strlen(buffer), 0, res->ai_addr, res->ai_addrlen);
+        bytes = recv(sd, (void) buffer, sizeof(char)*79,0);
+        buffer[bytes]= '\0';
+        std::cout << buffer<< std::endl;
         }
 
     }
