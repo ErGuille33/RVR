@@ -60,9 +60,9 @@ class ChatServer
 public:
     ChatServer(const char * s, const char * p): socket(s, p)
     {
-     
-        socket.bind();
-
+        int aux;
+        aux = socket.bind();
+        std::cout << aux << "bind" <<std::endl;
     };
 
     /**
@@ -100,7 +100,7 @@ public:
      */
     ChatClient(const char * s, const char * p, const char * n):socket(s, p),
         nick(n){};
-
+    virtual ~ChatClient(){  logout();};
     /**
      *  Envía el mensaje de login al servidor
      */

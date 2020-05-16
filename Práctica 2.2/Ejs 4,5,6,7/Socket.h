@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <netdb.h>
 
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <iostream>
 #include <stdexcept>
 
@@ -106,6 +108,7 @@ public:
     int bind()
     {
         return ::bind(sd, (const struct sockaddr *) &sa, sa_len);
+        
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Socket& dt);
@@ -115,6 +118,8 @@ public:
     int sd;
 protected:
 
+    struct sockaddr_in sa;
+    socklen_t       sa_len;
     /**
      *  Descriptor del socket
      */
@@ -122,8 +127,6 @@ protected:
     /**
      *  Representación binaria del extremo, usada por servidor y cliente
      */
-    struct sockaddr_in sa;
-    socklen_t       sa_len;
 };
 
 #endif /* SOCKET_H_ */

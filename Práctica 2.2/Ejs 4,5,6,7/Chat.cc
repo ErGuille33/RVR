@@ -12,10 +12,10 @@ void ChatMessage::to_bin()
 
     memcpy(tmp, &type , sizeof(uint8_t));
     tmp += sizeof(uint8_t);
-
+    
     memcpy(tmp, &nick, sizeof(char) * 8);
     tmp += sizeof(char) * 8;
-
+    
     memcpy(tmp, &message, sizeof(char) * 80);
     tmp += sizeof(char) * 80;
 }
@@ -36,8 +36,10 @@ int ChatMessage::from_bin(char * bobj)
     memcpy(&nick, tmp, sizeof(char) * 8);
     tmp += sizeof(char) * 8;
 
+    
     memcpy(&message, tmp, sizeof(char) * 80);
     tmp += sizeof(char) * 80;
+    
 
     return 0;
 }
@@ -48,8 +50,8 @@ int ChatMessage::from_bin(char * bobj)
 void ChatServer::do_messages()
 {
     ChatMessage obj;
+    
     Socket* outSocket; 
-    std::vector<Socket*>::iterator i;
     while (true)
     {
         //Recibir Mensajes en y en función del tipo de mensaje
@@ -60,11 +62,12 @@ void ChatServer::do_messages()
 
         switch(obj.type){
             case 0:
-            clients.push_back(&socket);
+            clients.push_back(outSocket);
             break;
             case 1:
-            for( i = clients.begin(); i < clients.end(); i++){
-                if (*i != outSocket){
+            for(Socket* i: clients){
+                if (!(*i == *outSocket)){
+                 
                     socket.send(obj, (const Socket&)*i );
                 }
             }
@@ -72,7 +75,7 @@ void ChatServer::do_messages()
             case 2:
             int cont = 0;
             int aux;
-            for(i = clients.begin(); i < clients.end(); i++){
+            for(auto i = clients.begin(); i != clients.end(); i++){
                 if (*i == outSocket){
                     aux = cont;
                 }
@@ -80,10 +83,8 @@ void ChatServer::do_messages()
             }
             clients.erase(clients.begin() + aux);
             break;
-              
             
         }
-        
 
     }
 }
@@ -94,8 +95,10 @@ void ChatClient::login()
 
     ChatMessage em(nick, msg);
     em.type = ChatMessage::LOGIN;
+    em.message = "Login";
 
     socket.send(em, socket);
+
 }
 
 void ChatClient::logout()
@@ -104,17 +107,21 @@ void ChatClient::logout()
 
   ChatMessage em(nick, msg);
   em.type = ChatMessage::LOGOUT;
+  em.message = "Logout";
 
   socket.send(em, socket);
 }
 
 void ChatClient::input_thread()
 {
-    std::string msg; 
     while (true)
     {
+        std::string msg; 
+
         std::getline(std::cin, msg);
+
         ChatMessage em(nick, msg);
+        em.type = ChatMessage::MESSAGE;
         
         socket.send(em, socket);
         // Leer stdin con std::getline
@@ -124,10 +131,12 @@ void ChatClient::input_thread()
 
 void ChatClient::net_thread()
 {
-    ChatMessage em;
     while(true)
     {
+        ChatMessage em;
+         
         socket.recv(em);
+
         std::cout << em.nick << ": " << em.message << std::endl;
         //Recibir Mensajes de red
         //Mostrar en pantalla el mensaje de la forma "nick: mensaje"

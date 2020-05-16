@@ -1,5 +1,6 @@
 #include <string.h>
 
+
 #include "Serializable.h"
 #include "Socket.h"
 
@@ -19,13 +20,16 @@ Socket::Socket(const char * address, const char * port):sd(-1)
   
 
     int rc = getaddrinfo(address, port, &hints, &res);
-    std::cout << rc <<std::endl;
+    
+    sa.sin_family =res->ai_family;
+    sa.sin_addr.s_addr = INADDR_ANY;
+    sa_len = sizeof(struct sockaddr_in);
+    sa.sin_port = htons(atoi(port));
+
+    //inet_aton(address,&sa.sin_addr);
+
     sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
-
-    socklen_t sa_len = sizeof(struct sockaddr_in);
-
-    bind();
 
 
 }
@@ -48,7 +52,7 @@ int Socket::recv(Serializable &obj, Socket * &sock)
     {
         sock = new Socket(&sa, sa_len);
     }
-
+    
     obj.from_bin(buffer);
 
     return 0;
@@ -58,8 +62,13 @@ int Socket::send(Serializable& obj, const Socket& sock)
 {
     //Serializar el objeto
     //Enviar el objeto binario a sock usando el socket sd
+    int aux;
     obj.to_bin();
-    sendto(sd, obj.data(), obj.size(), 0, (struct sockaddr *)&sock.sa, sock.sa_len);
+    
+    char *charData = obj.data();
+
+    aux = sendto(sd, charData, obj.size(), 0, (struct sockaddr *)&sock.sa, sock.sa_len);
+    std::cout << aux << " Mensaje enviado" << std::endl;
 }
 
 bool operator== (const Socket &s1, const Socket &s2)
@@ -68,8 +77,14 @@ bool operator== (const Socket &s1, const Socket &s2)
     //de la estructura sockaddr_in de los Sockets s1 y s2
     //Retornar false si alguno difiere
 
-    if(s1.sa.sin_family != s2.sa.sin_family) return false;
-    if(s1.sa.sin_port != s2.sa.sin_port) return false;
+    sockaddr_in* sock1 = (struct sockaddr_in *)&s1.sa;
+    sockaddr_in* sock2 = (struct sockaddr_in *)&s2.sa;
+
+    //std::cout << sock1->sin_family << std::endl;
+
+    if(sock1->sin_family != sock2->sin_family) return false;
+
+    if(sock1->sin_port != sock2->sin_port) return false;
     
     return true;
     
@@ -87,4 +102,3 @@ std::ostream& operator<<(std::ostream& os, const Socket& s)
 
     return os;
 };
-
