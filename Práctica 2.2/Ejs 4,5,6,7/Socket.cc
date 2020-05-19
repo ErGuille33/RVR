@@ -11,7 +11,6 @@ Socket::Socket(const char * address, const char * port):sd(-1)
 
     struct addrinfo *res;
     struct addrinfo hints;
-
     memset(&hints, 0, sizeof(struct addrinfo));
 
     hints.ai_family = AF_INET;
@@ -21,27 +20,36 @@ Socket::Socket(const char * address, const char * port):sd(-1)
 
     int rc = getaddrinfo(address, port, &hints, &res);
     
-    sa.sin_family =res->ai_family;
-    sa.sin_addr.s_addr = INADDR_ANY;
-    sa_len = sizeof(struct sockaddr_in);
-    sa.sin_port = htons(atoi(port));
+    if(rc!= 0)
+    {
+        std::cerr << "getaddrinfo: " << gai_strerror(rc) << std:endl;
+    }
 
+    sa =  *res->ai_addr;
+    sa_len = sizeof(struct sockaddr);
+    //sa = *reinterpret_cast<sockaddr_in*>(&aux);
+
+    //sa.sin_port = htons(atoi(port));
+    //sa.sin_family =res->ai_family;
+    //sa.sin_addr.s_addr = INADDR_ANY;
     //inet_aton(address,&sa.sin_addr);
 
     sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
+
+    freeaddrinfo(res);
 
 
 }
 
 int Socket::recv(Serializable &obj, Socket * &sock)
 {
-    struct sockaddr_in sa;
-    socklen_t sa_len = sizeof(struct sockaddr_in);
+    struct sockaddr sa;
+    socklen_t sa_len = sizeof(struct sockaddr);
 
     char buffer[MAX_MESSAGE_SIZE];
 
-    ssize_t bytes = ::recvfrom(sd, buffer, MAX_MESSAGE_SIZE, 0, (struct sockaddr *)&sa, &sa_len);
+    ssize_t bytes = ::recvfrom(sd, (void*)buffer, MAX_MESSAGE_SIZE, 0, &sa, &sa_len);
 
     if ( bytes <= 0 )
     {
@@ -52,7 +60,7 @@ int Socket::recv(Serializable &obj, Socket * &sock)
     {
         sock = new Socket(&sa, sa_len);
     }
-    
+
     obj.from_bin(buffer);
 
     return 0;
@@ -63,14 +71,15 @@ int Socket::send(Serializable& obj, const Socket& sock)
     //Serializar el objeto
     //Enviar el objeto binario a sock usando el socket sd
     int aux;
+
     obj.to_bin();
     
     char *charData = obj.data();
 
-    std::cout << sock.sd << " SD" << std::endl;
-    std::cout<<sock.sa.sin_port<<"puerto2"<<std::endl;
-    aux = sendto(sd, charData, obj.size(), 0, (struct sockaddr *)&sock.sa, sock.sa_len);
+    aux = sendto(sd, charData, obj.size(), 0, &sock.sa, sock.sa_len);
+
     std::cout << aux << " Mensaje enviado" << std::endl;
+    return aux;
 }
 
 bool operator== (const Socket &s1, const Socket &s2)
@@ -83,13 +92,10 @@ bool operator== (const Socket &s1, const Socket &s2)
     sockaddr_in* sock2 = (struct sockaddr_in *)&s2.sa;
 
 
-    if(sock1->sin_family != sock2->sin_family) return false;
+    return (sock1->sin_family == sock2->sin_family && sock1->sin_addr.s_addr == sock2->sin_addr.s_addr
+    && sock1->sin_port == sock2->sin_port);
 
-    if(sock1->sin_addr.s_addr != sock2->sin_addr.s_addr) return false;
-
-    if(sock1->sin_port != sock2->sin_port) return false;
-    
-    return true;
+  
     
 };
 

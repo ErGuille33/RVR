@@ -5,8 +5,6 @@
 #include <sys/types.h>
 #include <netdb.h>
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <iostream>
 #include <stdexcept>
 
@@ -66,7 +64,7 @@ public:
     /**
      *  Inicializa un Socket copiando los parámetros del socket
      */
-    Socket(struct sockaddr_in * _sa, socklen_t _sa_len):sd(-1), sa(*_sa),
+    Socket(struct sockaddr * _sa, socklen_t _sa_len):sd(-1), sa(*_sa),
         sa_len(_sa_len){};
 
     virtual ~Socket(){};
@@ -115,10 +113,10 @@ public:
 
     friend bool operator== (const Socket &s1, const Socket &s2);
 
-    int sd;
 protected:
 
-    struct sockaddr_in sa;
+    int sd;
+    struct sockaddr sa;
     socklen_t       sa_len;
     /**
      *  Descriptor del socket

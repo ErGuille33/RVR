@@ -1,5 +1,5 @@
 #include "Chat.h"
-#include <vector>
+
 void ChatMessage::to_bin()
 {
     //Serializar los campos type, nick y message en el buffer _data
@@ -12,12 +12,12 @@ void ChatMessage::to_bin()
 
     memcpy(tmp, &type , sizeof(uint8_t));
     tmp += sizeof(uint8_t);
-    
+
     memcpy(tmp, &nick, sizeof(char) * 8);
     tmp += sizeof(char) * 8;
-    
-    memcpy(tmp, &message, sizeof(char) * 80);
-    tmp += sizeof(char) * 80;
+
+    memcpy(tmp, &message, 80 * sizeof(char) );
+    tmp += 80 *sizeof(char);
 }
 
 int ChatMessage::from_bin(char * bobj)
@@ -35,11 +35,9 @@ int ChatMessage::from_bin(char * bobj)
 
     memcpy(&nick, tmp, sizeof(char) * 8);
     tmp += sizeof(char) * 8;
-
     
     memcpy(&message, tmp, sizeof(char) * 80);
     tmp += sizeof(char) * 80;
-    
 
     return 0;
 }
@@ -49,17 +47,16 @@ int ChatMessage::from_bin(char * bobj)
 
 void ChatServer::do_messages()
 {
-    ChatMessage obj;
-    
+        ChatMessage obj;
+        Socket* outSocket; 
     while (true)
     {
-    Socket* outSocket; 
+
         //Recibir Mensajes en y en función del tipo de mensaje
         // - LOGIN: Añadir al vector clients
         // - LOGOUT: Eliminar del vector clients
         // - MESSAGE: Reenviar el mensaje a todos los clientes (menos el emisor)
         socket.recv(obj, outSocket);
-
         switch(obj.type){
             case 0:
             clients.push_back(outSocket);
@@ -67,8 +64,7 @@ void ChatServer::do_messages()
             case 1:
             for(Socket* i: clients){
                 if (!(*i == *outSocket)){
-                    std::cout << *i << " i contra outsocket" << *outSocket << std::endl;
-                    socket.send(obj, (const Socket&)*i );
+                    socket.send(obj, *i );
                 }
             }
             break;
@@ -85,20 +81,20 @@ void ChatServer::do_messages()
             break;
             
         }
-
     }
 }
 
 void ChatClient::login()
 {
     std::string msg;
-
+    msg = "Login";
     ChatMessage em(nick, msg);
     em.type = ChatMessage::LOGIN;
-    em.message = "Login";
-
     socket.send(em, socket);
+    std::cout << "LOGIN" << std::endl;
 
+    //em.type = ChatMessage::MESSAGE;
+    //socket.send(em, socket);
 }
 
 void ChatClient::logout()
@@ -107,9 +103,9 @@ void ChatClient::logout()
 
   ChatMessage em(nick, msg);
   em.type = ChatMessage::LOGOUT;
-  em.message = "Logout";
-
   socket.send(em, socket);
+
+  std::cout << "LOGOUT" << std::endl;
 }
 
 void ChatClient::input_thread()
