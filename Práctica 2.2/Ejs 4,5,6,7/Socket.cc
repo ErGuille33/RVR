@@ -67,6 +67,8 @@ int Socket::send(Serializable& obj, const Socket& sock)
     
     char *charData = obj.data();
 
+    std::cout << sock.sd << " SD" << std::endl;
+    std::cout<<sock.sa.sin_port<<"puerto2"<<std::endl;
     aux = sendto(sd, charData, obj.size(), 0, (struct sockaddr *)&sock.sa, sock.sa_len);
     std::cout << aux << " Mensaje enviado" << std::endl;
 }
@@ -80,9 +82,10 @@ bool operator== (const Socket &s1, const Socket &s2)
     sockaddr_in* sock1 = (struct sockaddr_in *)&s1.sa;
     sockaddr_in* sock2 = (struct sockaddr_in *)&s2.sa;
 
-    //std::cout << sock1->sin_family << std::endl;
 
     if(sock1->sin_family != sock2->sin_family) return false;
+
+    if(sock1->sin_addr.s_addr != sock2->sin_addr.s_addr) return false;
 
     if(sock1->sin_port != sock2->sin_port) return false;
     
@@ -102,3 +105,4 @@ std::ostream& operator<<(std::ostream& os, const Socket& s)
 
     return os;
 };
+

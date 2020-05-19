@@ -51,9 +51,9 @@ void ChatServer::do_messages()
 {
     ChatMessage obj;
     
-    Socket* outSocket; 
     while (true)
     {
+    Socket* outSocket; 
         //Recibir Mensajes en y en función del tipo de mensaje
         // - LOGIN: Añadir al vector clients
         // - LOGOUT: Eliminar del vector clients
@@ -67,7 +67,7 @@ void ChatServer::do_messages()
             case 1:
             for(Socket* i: clients){
                 if (!(*i == *outSocket)){
-                 
+                    std::cout << *i << " i contra outsocket" << *outSocket << std::endl;
                     socket.send(obj, (const Socket&)*i );
                 }
             }
