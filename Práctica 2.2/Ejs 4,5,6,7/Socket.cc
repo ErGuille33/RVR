@@ -22,7 +22,7 @@ Socket::Socket(const char * address, const char * port):sd(-1)
     
     if(rc!= 0)
     {
-        std::cerr << "getaddrinfo: " << gai_strerror(rc) << std:endl;
+        std::cerr << "getaddrinfo: " << gai_strerror(rc) << std::endl;
     }
 
     sa =  *res->ai_addr;

@@ -7,16 +7,17 @@ void ChatMessage::to_bin()
     alloc_data(MESSAGE_SIZE);
 
     memset(_data, 0, MESSAGE_SIZE);
-
+    _size = MESSAGE_SIZE;
     char * tmp = _data;
 
     memcpy(tmp, &type , sizeof(uint8_t));
     tmp += sizeof(uint8_t);
 
-    memcpy(tmp, &nick, sizeof(char) * 8);
+    nick[8] = '\0';
+    memcpy(tmp, nick.c_str(), sizeof(char) * 8);
     tmp += sizeof(char) * 8;
-
-    memcpy(tmp, &message, 80 * sizeof(char) );
+    message[80] = '\0';
+    memcpy(tmp, message.c_str(), 80 * sizeof(char) );
     tmp += 80 *sizeof(char);
 }
 
@@ -25,7 +26,7 @@ int ChatMessage::from_bin(char * bobj)
     alloc_data(MESSAGE_SIZE);
 
     memcpy(static_cast<void *>(_data), bobj, MESSAGE_SIZE);
-
+    _size = MESSAGE_SIZE;
     //Reconstruir la clase usando el buffer _data
 
     char * tmp = _data;
@@ -33,11 +34,13 @@ int ChatMessage::from_bin(char * bobj)
     memcpy(&type, tmp , sizeof(uint8_t));
     tmp += sizeof(uint8_t);
 
-    memcpy(&nick, tmp, sizeof(char) * 8);
+    memcpy(&nick[0], tmp, sizeof(char) * 8);
     tmp += sizeof(char) * 8;
+    nick[8] = '\0';
     
-    memcpy(&message, tmp, sizeof(char) * 80);
+    memcpy(&message[0], tmp, sizeof(char) * 80);
     tmp += sizeof(char) * 80;
+    message[80] = '\0';
 
     return 0;
 }
@@ -47,10 +50,11 @@ int ChatMessage::from_bin(char * bobj)
 
 void ChatServer::do_messages()
 {
-        ChatMessage obj;
-        Socket* outSocket; 
     while (true)
     {
+        std::cout << " cout1" << std::endl;
+        ChatMessage obj;
+        Socket* outSocket; 
 
         //Recibir Mensajes en y en función del tipo de mensaje
         // - LOGIN: Añadir al vector clients
@@ -81,6 +85,7 @@ void ChatServer::do_messages()
             break;
             
         }
+        std::cout << " cout2" << std::endl;
     }
 }
 
@@ -133,7 +138,7 @@ void ChatClient::net_thread()
          
         socket.recv(em);
 
-        std::cout << em.nick << ": " << em.message << std::endl;
+        std::cout << &em.nick[0] << ": " << &em.message[0] << std::endl;
         //Recibir Mensajes de red
         //Mostrar en pantalla el mensaje de la forma "nick: mensaje"
     }
