@@ -52,7 +52,6 @@ void ChatServer::do_messages()
 {
     while (true)
     {
-        std::cout << " cout1" << std::endl;
         ChatMessage obj;
         Socket* outSocket; 
 
@@ -64,6 +63,7 @@ void ChatServer::do_messages()
         switch(obj.type){
             case 0:
             clients.push_back(outSocket);
+            std::cout << "LOG IN" << std::endl;
             break;
             case 1:
             for(Socket* i: clients){
@@ -85,7 +85,6 @@ void ChatServer::do_messages()
             break;
             
         }
-        std::cout << " cout2" << std::endl;
     }
 }
 
@@ -97,9 +96,6 @@ void ChatClient::login()
     em.type = ChatMessage::LOGIN;
     socket.send(em, socket);
     std::cout << "LOGIN" << std::endl;
-
-    //em.type = ChatMessage::MESSAGE;
-    //socket.send(em, socket);
 }
 
 void ChatClient::logout()
